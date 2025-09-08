@@ -320,7 +320,6 @@ char **isolate_sandbox::isolate_run_args(const std::string &binary, const std::v
 
 	vargs.push_back(isolate_binary_); // First argument must be binary name
 	vargs.push_back("--cg");
-	vargs.push_back("--cg-timing");
 	vargs.push_back("--box-id=" + std::to_string(id_));
 
 	vargs.push_back("--cg-mem=" + std::to_string(limits_.memory_usage + limits_.extra_memory));
