@@ -193,7 +193,7 @@ void isolate_sandbox::isolate_init_child()
 	devnull = open("/dev/null", O_WRONLY);
 	if (devnull == -1) { log_and_throw(logger_, "Cannot open /dev/null file for writing."); }
 	dup2(devnull, 2);
-#elif 0
+#elif 1
 	int log_fd = open("/var/recodex-worker-wd/isolate.log", O_WRONLY | O_CREAT | O_APPEND, 0666);
 	if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
 	dup2(log_fd, 2);
@@ -254,7 +254,7 @@ void isolate_sandbox::isolate_cleanup()
 		devnull = open("/dev/null", O_WRONLY);
 		if (devnull == -1) { log_and_throw(logger_, "Cannot open /dev/null file for writing."); }
 		dup2(devnull, 2);
-#elif 0
+#elif 1
 		{
 			int log_fd = open("/var/recodex-worker-wd/isolate.log", O_WRONLY | O_CREAT | O_APPEND, 0666);
 			if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
