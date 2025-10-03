@@ -187,8 +187,9 @@ void isolate_sandbox::isolate_init_child(int fd_0, int fd_1)
 
 #if 1
 	fprintf(stderr, "Running isolate as pid %d:\n", (int) getpid());
-	for (auto a: args)
-		fprintf(stderr, "\t%s\n", a);
+	for (int i=0; args[i]; i++)
+		fprintf(stderr, "\t%s\n", args[i]);
+	fflush(stderr);
 #endif
 
 	// const_cast is ugly, but this is working with C code - execv does not modify its arguments
@@ -237,6 +238,7 @@ void isolate_sandbox::isolate_cleanup()
 		fprintf(stderr, "Running isolate as pid %d:\n", (int) getpid());
 		for (int i=0; args[i]; i++)
 			fprintf(stderr, "\t%s\n", args[i]);
+		fflush(stderr);
 #endif
 
 		// const_cast is ugly, but this is working with C code - execv does not modify its arguments
@@ -285,6 +287,7 @@ void isolate_sandbox::isolate_run(const std::string &binary, const std::vector<s
 			fprintf(stderr, "Running isolate as pid %d:\n", (int) getpid());
 			for (int i=0; args[i]; i++)
 				fprintf(stderr, "\t%s\n", args[i]);
+			fflush(stderr);
 		}
 #endif
 
