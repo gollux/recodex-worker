@@ -159,7 +159,7 @@ void isolate_sandbox::isolate_init_child(int fd_0, int fd_1)
 	if (devnull == -1) { log_and_throw(logger_, "Cannot open /dev/null file for writing."); }
 	dup2(devnull, 2);
 #else
-	int log_fd = open("/var/recodex-worker-wd/isolate.log", O_CREAT | O_APPEND, 0666);
+	int log_fd = open("/var/recodex-worker-wd/isolate.log", O_WRONLY | O_CREAT | O_APPEND, 0666);
 	if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
 	dup2(log_fd, 2);
 	close(log_fd);
@@ -219,7 +219,7 @@ void isolate_sandbox::isolate_cleanup()
 		dup2(devnull, 2);
 #else
 		{
-			int log_fd = open("/var/recodex-worker-wd/isolate.log", O_CREAT | O_APPEND, 0666);
+			int log_fd = open("/var/recodex-worker-wd/isolate.log", O_WRONLY | O_CREAT | O_APPEND, 0666);
 			if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
 			dup2(log_fd, 2);
 			close(log_fd);
@@ -279,7 +279,7 @@ void isolate_sandbox::isolate_run(const std::string &binary, const std::vector<s
 
 #if 1
 		{
-			int log_fd = open("/var/recodex-worker-wd/isolate.log", O_CREAT | O_APPEND, 0666);
+			int log_fd = open("/var/recodex-worker-wd/isolate.log", O_WRONLY | O_CREAT | O_APPEND, 0666);
 			if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
 			dup2(log_fd, 2);
 			close(log_fd);
