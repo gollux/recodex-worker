@@ -152,11 +152,18 @@ void isolate_sandbox::isolate_init_child(int fd_0, int fd_1)
 	// Close stdout, duplicate the input side of pipe to stdout
 	dup2(fd_1, 1);
 
+#if 0
 	// Redirect stderr to /dev/null file
 	int devnull;
 	devnull = open("/dev/null", O_WRONLY);
 	if (devnull == -1) { log_and_throw(logger_, "Cannot open /dev/null file for writing."); }
 	dup2(devnull, 2);
+#else
+	int log_fd = open("/var/recodex-worker-wd/isolate.log", O_CREAT | O_APPEND, 0666);
+	if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
+	dup2(log_fd, 2);
+	close(log_fd);
+#endif
 
 	std::string box_id_arg("--box-id=" + std::to_string(id_));
 
@@ -178,6 +185,12 @@ void isolate_sandbox::isolate_init_child(int fd_0, int fd_1)
 	args.push_back("--init");
 	args.push_back(nullptr);
 
+#if 1
+	fprintf(stderr, "Running isolate as pid %d:\n", (int) getpid());
+	for (auto a: args)
+		fprintf(stderr, "\t%s\n", a);
+#endif
+
 	// const_cast is ugly, but this is working with C code - execv does not modify its arguments
 	execvp(isolate_binary_.c_str(), const_cast<char **>(&args[0]));
 
@@ -197,11 +210,20 @@ void isolate_sandbox::isolate_cleanup()
 	case -1: log_and_throw(logger_, "Fork failed: ", strerror(errno)); break;
 	case 0:
 		//---Child---
+#if 0
 		// Redirect stderr to /dev/null file
 		int devnull;
 		devnull = open("/dev/null", O_WRONLY);
 		if (devnull == -1) { log_and_throw(logger_, "Cannot open /dev/null file for writing."); }
 		dup2(devnull, 2);
+#else
+		{
+			int log_fd = open("/var/recodex-worker-wd/isolate.log", O_CREAT | O_APPEND, 0666);
+			if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
+			dup2(log_fd, 2);
+			close(log_fd);
+		}
+#endif
 
 		// Exec isolate cleanup command
 		const char *args[5];
@@ -210,6 +232,13 @@ void isolate_sandbox::isolate_cleanup()
 		args[2] = strdup(("--box-id=" + std::to_string(id_)).c_str());
 		args[3] = "--cleanup";
 		args[4] = NULL;
+
+#if 1
+		fprintf(stderr, "Running isolate as pid %d:\n", (int) getpid());
+		for (int i=0; args[i]; i++)
+			fprintf(stderr, "\t%s\n", args[i]);
+#endif
+
 		// const_cast is ugly, but this is working with C code - execv does not modify its arguments
 		execvp(isolate_binary_.c_str(), const_cast<char **>(args));
 
@@ -244,6 +273,20 @@ void isolate_sandbox::isolate_run(const std::string &binary, const std::vector<s
 	case 0: {
 		//---Child---
 		logger_->debug("Returned from the first fork as child");
+		auto args = isolate_run_args(binary, arguments);
+
+#if 1
+		{
+			int log_fd = open("/var/recodex-worker-wd/isolate.log", O_CREAT | O_APPEND, 0666);
+			if (log_fd < 0) { log_and_throw(logger_, "Cannot open isolate.log."); }
+			dup2(log_fd, 2);
+			close(log_fd);
+
+			fprintf(stderr, "Running isolate as pid %d:\n", (int) getpid());
+			for (int i=0; args[i]; i++)
+				fprintf(stderr, "\t%s\n", args[i]);
+		}
+#endif
 
 		// Redirect stderr and stdout to /dev/null file
 		int devnull;
@@ -253,7 +296,6 @@ void isolate_sandbox::isolate_run(const std::string &binary, const std::vector<s
 		dup2(devnull, 1);
 		dup2(devnull, 2);
 
-		auto args = isolate_run_args(binary, arguments);
 		execvp(isolate_binary_.c_str(), args);
 
 		// Never reached
